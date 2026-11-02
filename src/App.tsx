@@ -361,7 +361,12 @@ function App() {
                     type="button"
                   >
                     <span className="character-art">
-                      <img alt="" loading="lazy" src={character.img} />
+                      <img
+                        alt=""
+                        className="character-art-portrait"
+                        loading="lazy"
+                        src={character.img}
+                      />
                       <span className="art-number">{String(character.id).padStart(2, '0')}</span>
                       <span className="art-caption">
                         {breathingStyle
