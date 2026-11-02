@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './App.css'
 
 type Character = {
@@ -94,6 +96,63 @@ const breathingStyleColors: Record<BreathingStyle, string> = {
 
 const neutralBreathingColor = '#b8afa3'
 
+const storyArcs = [
+  {
+    title: 'Отбор на горе Фудзикасанэ',
+    caption: 'Начало пути',
+    description: 'Первое испытание на пути истребителя демонов.',
+    glyph: '藤',
+  },
+  {
+    title: 'Асакуса',
+    caption: 'След демона',
+    description: 'Встреча с новым врагом среди огней большого города.',
+    glyph: '浅',
+  },
+  {
+    title: 'Особняк барабанщика',
+    caption: 'Новые союзники',
+    description: 'Неожиданная встреча меняет дорогу героев.',
+    glyph: '鼓',
+  },
+  {
+    title: 'Гора Натагумо',
+    caption: 'Паутина тайн',
+    description: 'Опасное испытание в лесу, где каждый шаг имеет значение.',
+    glyph: '蜘蛛',
+  },
+  {
+    title: 'Поезд «Бесконечность»',
+    caption: 'Сквозь ночной экспресс',
+    description: 'Путешествие, в котором воля проходит проверку сном.',
+    glyph: '夢',
+  },
+  {
+    title: 'Квартал развлечений',
+    caption: 'Огни большого города',
+    description: 'Тайная миссия в сияющем квартале Тайсё.',
+    glyph: '祭',
+  },
+  {
+    title: 'Деревня кузнецов',
+    caption: 'Клинок и наследие',
+    description: 'Новая глава начинается там, где рождаются клинки.',
+    glyph: '鍛',
+  },
+  {
+    title: 'Тренировка столпов',
+    caption: 'Перед рассветом',
+    description: 'Истребители готовятся к решающему испытанию.',
+    glyph: '柱',
+  },
+  {
+    title: 'Бесконечная крепость',
+    caption: 'Последнее сражение',
+    description: 'Все пути сходятся в сердце демонического мира.',
+    glyph: '城',
+  },
+]
+
 function isCharacter(value: unknown): value is Character {
   if (typeof value !== 'object' || value === null) return false
 
@@ -148,6 +207,7 @@ function SunMark() {
 
 function App() {
   const prefersReducedMotion = useReducedMotion()
+  const timelineRef = useRef<HTMLDivElement>(null)
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -157,6 +217,56 @@ function App() {
     localStorage.getItem('kimetsu-theme') === 'light' ? 'light' : 'dark',
   )
   const dialogRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const timeline = timelineRef.current
+    if (!timeline || prefersReducedMotion) return
+
+    gsap.registerPlugin(ScrollTrigger)
+    const context = gsap.context(() => {
+      gsap.utils.toArray<HTMLElement>('.arc-entry', timeline).forEach((entry) => {
+        const scene = entry.querySelector<HTMLElement>('.arc-scene')
+        const content = entry.querySelector<HTMLElement>('.arc-card-content')
+
+        if (content) {
+          gsap.fromTo(
+            content,
+            { autoAlpha: 0, y: 42 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.9,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: entry,
+                start: 'top 82%',
+                toggleActions: 'play none none reverse',
+              },
+            },
+          )
+        }
+
+        if (scene) {
+          gsap.fromTo(
+            scene,
+            { yPercent: -12 },
+            {
+              yPercent: 12,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: entry,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true,
+              },
+            },
+          )
+        }
+      })
+    }, timeline)
+
+    return () => context.revert()
+  }, [prefersReducedMotion])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -426,22 +536,30 @@ function App() {
             </div>
             <p className="section-aside">Каждая встреча меняет<br />ход истории.</p>
           </div>
-          <div className="arc-grid">
-            <article className="arc-card arc-first">
-              <span className="arc-number">ГЛАВА 01</span>
-              <div><p>Начало пути</p><h3>Отбор на горе Фудзикасанэ</h3></div>
-              <span className="arc-decoration" aria-hidden="true">藤</span>
-            </article>
-            <article className="arc-card arc-second">
-              <span className="arc-number">ГЛАВА 02</span>
-              <div><p>Новые союзники</p><h3>Поезд, следующий сквозь ночь</h3></div>
-              <span className="arc-decoration" aria-hidden="true">夢</span>
-            </article>
-            <article className="arc-card arc-third">
-              <span className="arc-number">ГЛАВА 03</span>
-              <div><p>Огни большого города</p><h3>Тайна квартала развлечений</h3></div>
-              <span className="arc-decoration" aria-hidden="true">祭</span>
-            </article>
+          <div className="arc-timeline" ref={timelineRef}>
+            <span aria-hidden="true" className="timeline-spine" />
+            {storyArcs.map((arc, index) => (
+              <article
+                className={`arc-entry ${index % 2 === 1 ? 'arc-entry-reversed' : ''}`}
+                key={arc.title}
+              >
+                <span aria-hidden="true" className="timeline-marker">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <div className={`arc-card arc-${['first', 'second', 'third'][index % 3]}`}>
+                  <div aria-hidden="true" className="arc-scene" />
+                  <div className="arc-card-content">
+                    <span className="arc-number">ГЛАВА {String(index + 1).padStart(2, '0')}</span>
+                    <div className="arc-copy">
+                      <p>{arc.caption}</p>
+                      <h3>{arc.title}</h3>
+                      <span className="arc-description">{arc.description}</span>
+                    </div>
+                    <span className="arc-decoration" aria-hidden="true">{arc.glyph}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
