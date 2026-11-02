@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './App.css'
+
+const Quiz = lazy(() => import('./components/Quiz/Quiz'))
 
 type Character = {
   id: number
@@ -346,6 +348,7 @@ function App() {
           <a href="#characters">Персонажи</a>
           <a href="#styles">Дыхания</a>
           <a href="#arcs">Арки</a>
+          <a href="#quiz">Викторина</a>
         </nav>
         <div className="header-actions">
           <button
@@ -562,6 +565,16 @@ function App() {
             ))}
           </div>
         </section>
+
+        <Suspense
+          fallback={(
+            <section aria-busy="true" className="quiz-section" id="quiz">
+              <p className="section-index">ЗАГРУЖАЕМ ВИКТОРИНУ…</p>
+            </section>
+          )}
+        >
+          <Quiz />
+        </Suspense>
 
         <section className="closing-section">
           <SunMark />
