@@ -15,6 +15,8 @@ type Character = {
   quote: string | null
 }
 
+type Theme = 'dark' | 'light'
+
 const charactersApiUrl = 'https://www.demonslayer-api.com/api/v1/characters?page=1&limit=100'
 
 type BreathingStyle =
@@ -151,7 +153,18 @@ function App() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [theme, setTheme] = useState<Theme>(() =>
+    localStorage.getItem('kimetsu-theme') === 'light' ? 'light' : 'dark',
+  )
   const dialogRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem('kimetsu-theme', theme)
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'dark' ? '#101013' : '#f7f4ed')
+  }, [theme])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -224,9 +237,30 @@ function App() {
           <a href="#styles">Дыхания</a>
           <a href="#arcs">Арки</a>
         </nav>
-        <a className="header-link" href="#characters">
-          Войти в Корпус <span aria-hidden="true">↗</span>
-        </a>
+        <div className="header-actions">
+          <button
+            aria-label={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'}
+            className="theme-toggle"
+            onClick={() => setTheme((currentTheme) => currentTheme === 'dark' ? 'light' : 'dark')}
+            title={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'}
+            type="button"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+              {theme === 'dark' ? (
+                <path d="M20.2 15.4A8.4 8.4 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z" />
+              ) : (
+                <>
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
+                </>
+              )}
+            </svg>
+            <span>{theme === 'dark' ? 'Светлая' : 'Тёмная'}</span>
+          </button>
+          <a className="header-link" href="#characters">
+            Войти в Корпус <span aria-hidden="true">↗</span>
+          </a>
+        </div>
       </header>
 
       <main id="home">

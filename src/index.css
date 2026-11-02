@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 :root {
+  color-scheme: dark;
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
-  color: #292524;
-  background: #f7f4ed;
+  color: #f2eee8;
+  background: #101013;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,13 +12,44 @@
   font-optical-sizing: auto;
   font-weight: 400;
 
+  --ink: #f2eee8;
+  --muted: #a7a0a0;
+  --red: #c44148;
+  --red-bright: #f06b68;
+  --line: rgba(235, 222, 214, 0.13);
+  --page-bg: #101013;
+  --surface: #f7f4ed;
+  --surface-muted: #eee8df;
+  --card-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  --card-border: rgba(235, 222, 214, 0.08);
+  --nav: #d3ccca;
+  --accent-text: #dc8278;
+  --paper-ink: #292524;
+  --paper-muted: #827a72;
+  --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  color: #292524;
+  background: #f7f4ed;
   --ink: #292524;
   --muted: #827a72;
   --red: #8b2b2e;
-  --line: #e4ded4;
-  --serif: 'Playfair Display', Georgia, serif;
-
-  scroll-behavior: smooth;
+  --red-bright: #a63b3b;
+  --line: rgba(91, 67, 55, 0.16);
+  --page-bg: #f7f4ed;
+  --surface: #f7f4ed;
+  --surface-muted: #eee8df;
+  --card-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(238, 232, 223, 0.55));
+  --card-border: rgba(91, 67, 55, 0.13);
+  --nav: #554b45;
+  --accent-text: #8b2b2e;
+  --paper-ink: #292524;
+  --paper-muted: #827a72;
 }
 
 * {
@@ -28,6 +60,16 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(87, 38, 42, 0.12), transparent 42rem),
+    var(--page-bg);
+  transition: background-color 350ms ease, color 350ms ease;
+}
+
+:root[data-theme='light'] body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(139, 43, 46, 0.045), transparent 42rem),
+    var(--page-bg);
 }
 
 button,
@@ -37,7 +79,7 @@ a {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--red);
+  outline: 2px solid var(--red-bright);
   outline-offset: 4px;
 }
 
