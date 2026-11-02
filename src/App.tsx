@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import type { CharacterId } from './components/Quiz/quizData'
 import './App.css'
 
 const Quiz = lazy(() => import('./components/Quiz/Quiz'))
@@ -22,6 +23,14 @@ type Character = {
 type Theme = 'dark' | 'light'
 
 const charactersApiUrl = 'https://www.demonslayer-api.com/api/v1/characters?page=1&limit=100'
+const quizCharacterNames: Record<CharacterId, string> = {
+  tanjiro: 'Tanjiro Kamado',
+  zenitsu: 'Zenitsu Agatsuma',
+  inosuke: 'Inosuke Hashibira',
+  shinobu: 'Shinobu Kocho',
+  giyu: 'Giyu Tomioka',
+  rengoku: 'Kyojuro Rengoku',
+}
 
 type BreathingStyle =
   | 'water'
@@ -333,6 +342,14 @@ function App() {
     setSelectedCharacter(null)
   }
 
+  const quizCharacterImages = (Object.keys(quizCharacterNames) as CharacterId[]).reduce<
+    Partial<Record<CharacterId, string>>
+  >((images, id) => {
+    const character = characters.find((item) => item.name === quizCharacterNames[id])
+    if (character) images[id] = character.img
+    return images
+  }, {})
+
   return (
     <>
       <header className="site-header">
@@ -346,9 +363,9 @@ function App() {
         <nav className="main-nav" aria-label="Основная навигация">
           <a href="#story">О мире</a>
           <a href="#characters">Персонажи</a>
+          <a href="#quiz">Викторина</a>
           <a href="#styles">Дыхания</a>
           <a href="#arcs">Арки</a>
-          <a href="#quiz">Викторина</a>
         </nav>
         <div className="header-actions">
           <button
@@ -503,9 +520,19 @@ function App() {
           )}
         </section>
 
+        <Suspense
+          fallback={(
+            <section aria-busy="true" className="quiz-section" id="quiz">
+              <p className="section-index">ЗАГРУЖАЕМ ВИКТОРИНУ…</p>
+            </section>
+          )}
+        >
+          <Quiz characterImages={quizCharacterImages} />
+        </Suspense>
+
         <section className="styles-section" id="styles">
           <div className="styles-heading">
-            <p className="section-index">03 — ПУТЬ МЕЧА</p>
+            <p className="section-index">04 — ПУТЬ МЕЧА</p>
             <h2>Найди своё <em>дыхание.</em></h2>
             <p>Сосредоточься. Каждый стиль — это свой ритм, своя стихия и своя история.</p>
           </div>
@@ -534,7 +561,7 @@ function App() {
         <section className="arcs-section" id="arcs">
           <div className="section-heading">
             <div>
-              <p className="section-index">04 — ХРОНИКИ</p>
+              <p className="section-index">05 — ХРОНИКИ</p>
               <h2>Путь сквозь ночь</h2>
             </div>
             <p className="section-aside">Каждая встреча меняет<br />ход истории.</p>
@@ -565,16 +592,6 @@ function App() {
             ))}
           </div>
         </section>
-
-        <Suspense
-          fallback={(
-            <section aria-busy="true" className="quiz-section" id="quiz">
-              <p className="section-index">ЗАГРУЖАЕМ ВИКТОРИНУ…</p>
-            </section>
-          )}
-        >
-          <Quiz />
-        </Suspense>
 
         <section className="closing-section">
           <SunMark />

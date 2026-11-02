@@ -4,10 +4,11 @@ import type { CharacterResult } from './quizData'
 
 interface ResultCardProps {
   character: CharacterResult
+  characterImage?: string
   onRestart: () => void
 }
 
-function ResultCard({ character, onRestart }: ResultCardProps) {
+function ResultCard({ character, characterImage, onRestart }: ResultCardProps) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -18,8 +19,14 @@ function ResultCard({ character, onRestart }: ResultCardProps) {
       style={{ '--result-color': character.color } as CSSProperties}
       transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
     >
-      <span aria-hidden="true" className="quiz-result-halo" />
-      <span aria-hidden="true" className="quiz-result-emoji">{character.emoji}</span>
+      <div className="quiz-result-portrait">
+        {characterImage ? (
+          <img alt={character.name} loading="lazy" src={characterImage} />
+        ) : (
+          <span aria-hidden="true" className="quiz-result-emoji">{character.emoji}</span>
+        )}
+        <span aria-hidden="true" className="quiz-result-halo" />
+      </div>
       <div className="quiz-result-copy">
         <p className="quiz-kicker">ТВОЙ ПУТЬ ВЕДЁТ К</p>
         <p className="quiz-result-title">{character.title}</p>

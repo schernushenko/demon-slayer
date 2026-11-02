@@ -9,6 +9,10 @@ import './Quiz.css'
 type QuizStage = 'intro' | 'question' | 'result'
 type ScoreBoard = Record<CharacterId, number>
 
+interface QuizProps {
+  characterImages: Partial<Record<CharacterId, string>>
+}
+
 const emptyScores = (): ScoreBoard => ({
   tanjiro: 0,
   zenitsu: 0,
@@ -34,7 +38,7 @@ function getWinner(scores: ScoreBoard, primaryChoices: ScoreBoard): CharacterId 
   return primaryLeaders[0]
 }
 
-function Quiz() {
+function Quiz({ characterImages }: QuizProps) {
   const prefersReducedMotion = useReducedMotion()
   const [stage, setStage] = useState<QuizStage>('intro')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -104,7 +108,7 @@ function Quiz() {
   return (
     <section aria-labelledby="quiz-title" className="quiz-section" id="quiz">
       <div className="quiz-heading">
-        <p className="section-index">05 — ТВОЙ ПУТЬ</p>
+        <p className="section-index">03 — ТВОЙ ПУТЬ</p>
         <h2 id="quiz-title">Кто ты из <em>Клинка?</em></h2>
         <p>Прислушайся к себе — и узнай, чей характер ближе твоему.</p>
       </div>
@@ -237,7 +241,11 @@ function Quiz() {
                   ))}
                 </div>
                 <p className="quiz-kicker quiz-result-kicker">ТВОЙ РЕЗУЛЬТАТ</p>
-                <ResultCard character={characterResults[resultId]} onRestart={restartQuiz} />
+                <ResultCard
+                  character={characterResults[resultId]}
+                  characterImage={characterImages[resultId]}
+                  onRestart={restartQuiz}
+                />
               </motion.div>
             )}
           </AnimatePresence>
