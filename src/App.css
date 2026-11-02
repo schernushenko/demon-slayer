@@ -344,13 +344,15 @@
 
 .character-card {
   min-width: 0;
-  padding: 0;
-  border: 0;
+  padding: 7px;
+  border: 1px solid transparent;
+  border-radius: 2px;
   color: inherit;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.22);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transform-origin: center;
 }
 
 .character-art {
@@ -373,11 +375,6 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 300ms ease;
-}
-
-.character-card:hover .character-art img {
-  transform: scale(1.045);
 }
 
 .art-number,

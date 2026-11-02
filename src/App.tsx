@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import './App.css'
 
 type Character = {
@@ -15,6 +16,81 @@ type Character = {
 }
 
 const charactersApiUrl = 'https://www.demonslayer-api.com/api/v1/characters?page=1&limit=100'
+
+type BreathingStyle =
+  | 'water'
+  | 'thunder'
+  | 'beast'
+  | 'flower'
+  | 'insect'
+  | 'sound'
+  | 'love'
+  | 'flame'
+  | 'mist'
+  | 'stone'
+  | 'serpent'
+  | 'wind'
+  | 'sun'
+  | 'moon'
+
+const characterBreathingStyles: Record<string, BreathingStyle> = {
+  'Tanjiro Kamado': 'water',
+  'Giyu Tomioka': 'water',
+  'Sakonji Urokodaki': 'water',
+  Sabito: 'water',
+  Makomo: 'water',
+  'Aoi Kanzaki': 'water',
+  'Murata': 'water',
+  'Zenitsu Agatsuma': 'thunder',
+  'Inosuke Hashibira': 'beast',
+  'Kanao Tsuyuri': 'flower',
+  'Shinobu Kocho': 'insect',
+  'Tengen Uzui': 'sound',
+  'Mitsuri Kanroji': 'love',
+  'Kyojuro Rengoku': 'flame',
+  'Muichiro Tokito': 'mist',
+  'Gyomei Himejima': 'stone',
+  'Obanai Iguro': 'serpent',
+  'Sanemi Shinazugawa': 'wind',
+  Yoriichi: 'sun',
+  Kokushibo: 'moon',
+}
+
+const breathingStyleLabels: Record<BreathingStyle, string> = {
+  water: 'Дыхание воды',
+  thunder: 'Дыхание грома',
+  beast: 'Дыхание зверя',
+  flower: 'Дыхание цветка',
+  insect: 'Дыхание насекомого',
+  sound: 'Дыхание звука',
+  love: 'Дыхание любви',
+  flame: 'Дыхание пламени',
+  mist: 'Дыхание тумана',
+  stone: 'Дыхание камня',
+  serpent: 'Дыхание змеи',
+  wind: 'Дыхание ветра',
+  sun: 'Дыхание солнца',
+  moon: 'Дыхание луны',
+}
+
+const breathingStyleColors: Record<BreathingStyle, string> = {
+  water: '#4b8fa7',
+  thunder: '#c59a28',
+  beast: '#81964e',
+  flower: '#c47799',
+  insect: '#8a72b0',
+  sound: '#d2754e',
+  love: '#d87191',
+  flame: '#c84d38',
+  mist: '#82999d',
+  stone: '#9a8265',
+  serpent: '#557d68',
+  wind: '#719a67',
+  sun: '#cc9639',
+  moon: '#7566a5',
+}
+
+const neutralBreathingColor = '#b8afa3'
 
 function isCharacter(value: unknown): value is Character {
   if (typeof value !== 'object' || value === null) return false
@@ -69,6 +145,7 @@ function SunMark() {
 }
 
 function App() {
+  const prefersReducedMotion = useReducedMotion()
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -226,30 +303,50 @@ function App() {
           )}
           {!isLoading && !loadError && (
             <div className="character-grid">
-              {characters.map((character) => (
-                <button
-                  aria-label={`Подробнее о персонаже ${character.name}`}
-                  className="character-card"
-                  key={character.id}
-                  onClick={() => setSelectedCharacter(character)}
-                  type="button"
-                >
-                  <span className="character-art">
-                    <img alt="" loading="lazy" src={character.img} />
-                    <span className="art-number">{String(character.id).padStart(2, '0')}</span>
-                    <span className="art-caption">{localizedValue(character.race)}</span>
-                  </span>
-                  <span className="character-info">
-                    <span>
-                      <span className="character-title">
-                        {character.age === null ? 'Возраст неизвестен' : `${character.age} лет`}
+              {characters.map((character) => {
+                const breathingStyle = characterBreathingStyles[character.name]
+                const breathingColor = breathingStyle
+                  ? breathingStyleColors[breathingStyle]
+                  : neutralBreathingColor
+
+                return (
+                  <motion.button
+                    aria-label={`Подробнее о персонаже ${character.name}`}
+                    className="character-card"
+                    initial={false}
+                    key={character.id}
+                    onClick={() => setSelectedCharacter(character)}
+                    style={{ borderColor: 'transparent' }}
+                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                    whileHover={{
+                      scale: prefersReducedMotion ? 1 : 1.035,
+                      borderColor: breathingColor,
+                      boxShadow: `0 14px 32px ${breathingColor}40`,
+                    }}
+                    whileTap={{ scale: prefersReducedMotion ? 1 : 0.99 }}
+                    type="button"
+                  >
+                    <span className="character-art">
+                      <img alt="" loading="lazy" src={character.img} />
+                      <span className="art-number">{String(character.id).padStart(2, '0')}</span>
+                      <span className="art-caption">
+                        {breathingStyle
+                          ? breathingStyleLabels[breathingStyle]
+                          : localizedValue(character.race)}
                       </span>
-                      <span className="character-name">{character.name}</span>
                     </span>
-                    <span aria-hidden="true" className="card-arrow">↗</span>
-                  </span>
-                </button>
-              ))}
+                    <span className="character-info">
+                      <span>
+                        <span className="character-title">
+                          {character.age === null ? 'Возраст неизвестен' : `${character.age} лет`}
+                        </span>
+                        <span className="character-name">{character.name}</span>
+                      </span>
+                      <span aria-hidden="true" className="card-arrow">↗</span>
+                    </span>
+                  </motion.button>
+                )
+              })}
             </div>
           )}
         </section>
