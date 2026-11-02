@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import BreathingTrial from './components/BreathingTrial/BreathingTrial'
 import type { CharacterId } from './components/Quiz/quizData'
 import './App.css'
 
@@ -556,6 +557,7 @@ function App() {
               <span className="style-arrow" aria-hidden="true">↗</span>
             </a>
           </div>
+          <BreathingTrial />
         </section>
 
         <section className="arcs-section" id="arcs">
