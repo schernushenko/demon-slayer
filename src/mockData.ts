@@ -11,6 +11,9 @@ export type Character = {
   quote: string | null
 }
 
+const apiCharacterImage = (id: number) =>
+  `https://www.demonslayer-api.com/api/v1/characters/images/${id}.webp`
+
 export const mockCharacters: Character[] = [
   {
     id: 1,
@@ -20,7 +23,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Старший сын семьи Камадо, который наследует силу и сострадание, чтобы защищать близких и идти к свету даже в самые тёмные моменты.',
-    img: 'https://placehold.co/800x1100/101013/f7f4ed?text=Tanjiro',
+    img: apiCharacterImage(1),
     affiliation_id: 1,
     arc_id: 1,
     quote: 'Потерянная душа ведёт к рассвету.',
@@ -33,7 +36,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Пугающийся воин с удивительной скоростью и громовым дыханием, который раскрывает свой талант лишь в моменты настоящей опасности.',
-    img: 'https://placehold.co/800x1100/2f2d2c/f5d26b?text=Zenitsu',
+    img: apiCharacterImage(4),
     affiliation_id: 1,
     arc_id: 2,
     quote: 'Если я умру, пусть это будет быстро.',
@@ -46,7 +49,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Непредсказуемый боец с диким нравом, который принимает битву как естественную часть жизни и превращает хаос в силу.',
-    img: 'https://placehold.co/800x1100/3b3e2f/b9d97a?text=Inosuke',
+    img: apiCharacterImage(5),
     affiliation_id: 1,
     arc_id: 3,
     quote: 'Я не хочу быть любым — я хочу быть сильнейшим!',
@@ -59,7 +62,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Страж, чья тишина и дисциплина делают его одним из самых грозных и непроницаемых мечников в Корпусе.',
-    img: 'https://placehold.co/800x1100/1b2a36/b7d8f8?text=Giyu',
+    img: apiCharacterImage(2),
     affiliation_id: 2,
     arc_id: 4,
     quote: 'Лишь тот, кто выдерживает тишину, слышит истину.',
@@ -72,7 +75,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Лёгкая и опасная, она сочетает тонкую красоту с холодной точностью, превращая любое столкновение в смертельную игру.',
-    img: 'https://placehold.co/800x1100/3a2137/f9d9ea?text=Shinobu',
+    img: apiCharacterImage(7),
     affiliation_id: 2,
     arc_id: 5,
     quote: 'Слово врага — это лишь вторая смерть.',
@@ -85,7 +88,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Огненный столп, чей бесстрашный дух ощущается даже без слов — мощный, яркий и неукротимый.',
-    img: 'https://placehold.co/800x1100/44251a/f8b26a?text=Rengoku',
+    img: apiCharacterImage(9),
     affiliation_id: 2,
     arc_id: 6,
     quote: 'Пламя не знает страха, пока сердце не дрогнет.',
@@ -98,7 +101,7 @@ export const mockCharacters: Character[] = [
     race: 'Demon',
     description:
       'Братская защита и непреодолимая воля — судьба Нэдзуко была сломана, но она всё равно выбирает путь человечности.',
-    img: 'https://placehold.co/800x1100/2d1624/f3c7d8?text=Nezuko',
+    img: apiCharacterImage(3),
     affiliation_id: 1,
     arc_id: 2,
     quote: 'Они не должны погибнуть. Я не позволю этому.',
@@ -111,7 +114,7 @@ export const mockCharacters: Character[] = [
     race: 'Human',
     description:
       'Его движения будто туман: предельно быстрые, почти неуловимые, а внутренняя холодность делает его суровым защитником.',
-    img: 'https://placehold.co/800x1100/18222d/cfeaf8?text=Muichiro',
+    img: apiCharacterImage(10),
     affiliation_id: 2,
     arc_id: 7,
     quote: 'Память и воля — это всё, что остаётся после боли.',
