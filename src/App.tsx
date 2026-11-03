@@ -4,13 +4,26 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import BreathingTrial from './components/BreathingTrial/BreathingTrial'
 import type { CharacterId } from './components/Quiz/quizData'
-import { mockCharacters, type Character } from './mockData'
 import './App.css'
 
 const Quiz = lazy(() => import('./components/Quiz/Quiz'))
 
+type Character = {
+  id: number
+  name: string
+  age: number | null
+  gender: string
+  race: string
+  description: string
+  img: string
+  affiliation_id: number
+  arc_id: number
+  quote: string | null
+}
+
 type Theme = 'dark' | 'light'
 
+const charactersApiUrl = 'https://www.demonslayer-api.com/api/v1/characters?page=1&limit=100'
 const quizCharacterNames: Record<CharacterId, string> = {
   tanjiro: 'Tanjiro Kamado',
   zenitsu: 'Zenitsu Agatsuma',
@@ -96,60 +109,15 @@ const breathingStyleColors: Record<BreathingStyle, string> = {
 const neutralBreathingColor = '#b8afa3'
 
 const storyArcs = [
-  {
-    title: 'Отбор на горе Фудзикасанэ',
-    caption: 'Начало пути',
-    description: 'Первое испытание на пути истребителя демонов.',
-    glyph: '藤',
-  },
-  {
-    title: 'Асакуса',
-    caption: 'След демона',
-    description: 'Встреча с новым врагом среди огней большого города.',
-    glyph: '浅',
-  },
-  {
-    title: 'Особняк барабанщика',
-    caption: 'Новые союзники',
-    description: 'Неожиданная встреча меняет дорогу героев.',
-    glyph: '鼓',
-  },
-  {
-    title: 'Гора Натагумо',
-    caption: 'Паутина тайн',
-    description: 'Опасное испытание в лесу, где каждый шаг имеет значение.',
-    glyph: '蜘蛛',
-  },
-  {
-    title: 'Поезд «Бесконечность»',
-    caption: 'Сквозь ночной экспресс',
-    description: 'Путешествие, в котором воля проходит проверку сном.',
-    glyph: '夢',
-  },
-  {
-    title: 'Квартал развлечений',
-    caption: 'Огни большого города',
-    description: 'Тайная миссия в сияющем квартале Тайсё.',
-    glyph: '祭',
-  },
-  {
-    title: 'Деревня кузнецов',
-    caption: 'Клинок и наследие',
-    description: 'Новая глава начинается там, где рождаются клинки.',
-    glyph: '鍛',
-  },
-  {
-    title: 'Тренировка столпов',
-    caption: 'Перед рассветом',
-    description: 'Истребители готовятся к решающему испытанию.',
-    glyph: '柱',
-  },
-  {
-    title: 'Бесконечная крепость',
-    caption: 'Последнее сражение',
-    description: 'Все пути сходятся в сердце демонического мира.',
-    glyph: '城',
-  },
+  { title: 'Отбор на горе Фудзикасанэ', caption: 'Начало пути', description: 'Первое испытание на пути истребителя демонов.', glyph: '藤' },
+  { title: 'Асакуса', caption: 'След демона', description: 'Встреча с новым врагом среди огней большого города.', glyph: '浅' },
+  { title: 'Особняк барабанщика', caption: 'Новые союзники', description: 'Неожиданная встреча меняет дорогу героев.', glyph: '鼓' },
+  { title: 'Гора Натагумо', caption: 'Паутина тайн', description: 'Опасное испытание в лесу, где каждый шаг имеет значение.', glyph: '蜘蛛' },
+  { title: 'Поезд «Бесконечность»', caption: 'Сквозь ночной экспресс', description: 'Путешествие, в котором воля проходит проверку сном.', glyph: '夢' },
+  { title: 'Квартал развлечений', caption: 'Огни большого города', description: 'Тайная миссия в сияющем квартале Тайсё.', glyph: '祭' },
+  { title: 'Деревня кузнецов', caption: 'Клинок и наследие', description: 'Новая глава начинается там, где рождаются клинки.', glyph: '鍛' },
+  { title: 'Тренировка столпов', caption: 'Перед рассветом', description: 'Истребители готовятся к решающему испытанию.', glyph: '柱' },
+  { title: 'Бесконечная крепость', caption: 'Последнее сражение', description: 'Все пути сходятся в сердце демонического мира.', glyph: '城' },
 ]
 
 function isCharacter(value: unknown): value is Character {
@@ -276,37 +244,35 @@ function App() {
   }, [theme])
 
   useEffect(() => {
-    let isActive = true
+    const controller = new AbortController()
 
     async function loadCharacters() {
       setIsLoading(true)
       setLoadError(null)
 
       try {
-        const localData = {
-          content: mockCharacters,
+        const response = await fetch(charactersApiUrl, { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error(`Ошибка сервера (${response.status}).`)
         }
 
-        const parsedCharacters = parseCharacters(localData)
-
-        if (!isActive) return
-        setCharacters(parsedCharacters)
+        const data: unknown = await response.json()
+        setCharacters(parseCharacters(data))
       } catch (error) {
-        if (!isActive) return
+        if (controller.signal.aborted) return
+
         setLoadError(
           error instanceof Error
             ? `Не удалось загрузить персонажей: ${error.message}`
             : 'Не удалось загрузить персонажей. Попробуйте ещё раз.',
         )
       } finally {
-        if (isActive) setIsLoading(false)
+        if (!controller.signal.aborted) setIsLoading(false)
       }
     }
 
     void loadCharacters()
-    return () => {
-      isActive = false
-    }
+    return () => controller.abort()
   }, [reloadKey])
 
   useEffect(() => {
@@ -439,7 +405,7 @@ function App() {
             <p className="section-aside">Герои и демоны<br />из мира Kimetsu no Yaiba.</p>
           </div>
           <div className="character-toolbar">
-            <span>ЛОКАЛЬНЫЕ МОК-ДАННЫЕ</span>
+            <span>ДАННЫЕ DEMON SLAYER API</span>
             {!isLoading && !loadError && <span>{characters.length} персонажей</span>}
           </div>
           {isLoading && <p className="character-message" role="status">Загружаем персонажей…</p>}
