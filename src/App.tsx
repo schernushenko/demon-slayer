@@ -2,28 +2,14 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import BreathingTrial from './components/BreathingTrial/BreathingTrial'
 import type { CharacterId } from './components/Quiz/quizData'
+import { characters, type Character } from './data/characters'
 import './App.css'
 
 const Quiz = lazy(() => import('./components/Quiz/Quiz'))
 
-type Character = {
-  id: number
-  name: string
-  age: number | null
-  gender: string
-  race: string
-  description: string
-  img: string
-  affiliation_id: number
-  arc_id: number
-  quote: string | null
-}
-
 type Theme = 'dark' | 'light'
 
-const charactersApiUrl = 'https://www.demonslayer-api.com/api/v1/characters?page=1&limit=100'
 const quizCharacterNames: Record<CharacterId, string> = {
   tanjiro: 'Tanjiro Kamado',
   zenitsu: 'Zenitsu Agatsuma',
@@ -165,44 +151,14 @@ const storyArcs = [
   },
 ]
 
-function isCharacter(value: unknown): value is Character {
-  if (typeof value !== 'object' || value === null) return false
-
-  const character = value as Record<string, unknown>
-  return (
-    typeof character.id === 'number' &&
-    typeof character.name === 'string' &&
-    (typeof character.age === 'number' || character.age === null) &&
-    typeof character.gender === 'string' &&
-    typeof character.race === 'string' &&
-    typeof character.description === 'string' &&
-    typeof character.img === 'string' &&
-    typeof character.affiliation_id === 'number' &&
-    typeof character.arc_id === 'number' &&
-    (typeof character.quote === 'string' || character.quote === null)
-  )
-}
-
-function parseCharacters(data: unknown): Character[] {
-  if (
-    typeof data !== 'object' ||
-    data === null ||
-    !('content' in data) ||
-    !Array.isArray(data.content) ||
-    !data.content.every(isCharacter)
-  ) {
-    throw new Error('Сервер вернул данные в неожиданном формате.')
-  }
-
-  return data.content
-}
-
 function localizedValue(value: string) {
   const translations: Record<string, string> = {
     Human: 'Человек',
     Demon: 'Демон',
     Male: 'Мужчина',
     Female: 'Женщина',
+    Cat: 'Кошка',
+    Unknown: 'Неизвестно',
   }
 
   return translations[value] ?? value
@@ -220,11 +176,7 @@ function SunMark() {
 function App() {
   const prefersReducedMotion = useReducedMotion()
   const timelineRef = useRef<HTMLDivElement>(null)
-  const [characters, setCharacters] = useState<Character[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
-  const [reloadKey, setReloadKey] = useState(0)
   const [theme, setTheme] = useState<Theme>(() =>
     localStorage.getItem('kimetsu-theme') === 'light' ? 'light' : 'dark',
   )
@@ -289,38 +241,6 @@ function App() {
   }, [theme])
 
   useEffect(() => {
-    const controller = new AbortController()
-
-    async function loadCharacters() {
-      setIsLoading(true)
-      setLoadError(null)
-
-      try {
-        const response = await fetch(charactersApiUrl, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(`Ошибка сервера (${response.status}).`)
-        }
-
-        const data: unknown = await response.json()
-        setCharacters(parseCharacters(data))
-      } catch (error) {
-        if (controller.signal.aborted) return
-
-        setLoadError(
-          error instanceof Error
-            ? `Не удалось загрузить персонажей: ${error.message}`
-            : 'Не удалось загрузить персонажей. Попробуйте ещё раз.',
-        )
-      } finally {
-        if (!controller.signal.aborted) setIsLoading(false)
-      }
-    }
-
-    void loadCharacters()
-    return () => controller.abort()
-  }, [reloadKey])
-
-  useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
 
@@ -365,8 +285,7 @@ function App() {
           <a href="#story">О мире</a>
           <a href="#characters">Персонажи</a>
           <a href="#quiz">Викторина</a>
-          <a href="#styles">Дыхания</a>
-          <a href="#arcs">Арки</a>
+          <a href="#arcs">Хроники</a>
         </nav>
         <div className="header-actions">
           <button
@@ -450,75 +369,67 @@ function App() {
             <p className="section-aside">Герои и демоны<br />из мира Kimetsu no Yaiba.</p>
           </div>
           <div className="character-toolbar">
-            <span>ДАННЫЕ DEMON SLAYER API</span>
-            {!isLoading && !loadError && <span>{characters.length} персонажей</span>}
+            <span>ЛОКАЛЬНЫЕ ДАННЫЕ</span>
+            <span>{characters.length} персонажей</span>
           </div>
-          {isLoading && <p className="character-message" role="status">Загружаем персонажей…</p>}
-          {loadError && (
-            <div className="character-message character-error" role="alert">
-              <p>{loadError}</p>
-              <button
-                className="button button-primary"
-                onClick={() => setReloadKey((key) => key + 1)}
-                type="button"
-              >
-                Попробовать снова
-              </button>
-            </div>
-          )}
-          {!isLoading && !loadError && (
-            <div className="character-grid">
-              {characters.map((character) => {
-                const breathingStyle = characterBreathingStyles[character.name]
-                const breathingColor = breathingStyle
-                  ? breathingStyleColors[breathingStyle]
-                  : neutralBreathingColor
+          <div className="character-grid">
+            {characters.map((character) => {
+              const breathingStyle = characterBreathingStyles[character.name]
+              const breathingColor = breathingStyle
+                ? breathingStyleColors[breathingStyle]
+                : neutralBreathingColor
 
-                return (
-                  <motion.button
-                    aria-label={`Подробнее о персонаже ${character.name}`}
-                    className="character-card"
-                    initial={false}
-                    key={character.id}
-                    onClick={() => setSelectedCharacter(character)}
-                    style={{ borderColor: 'transparent' }}
-                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-                    whileHover={{
-                      scale: prefersReducedMotion ? 1 : 1.035,
-                      borderColor: breathingColor,
-                      boxShadow: `0 14px 32px ${breathingColor}40`,
-                    }}
-                    whileTap={{ scale: prefersReducedMotion ? 1 : 0.99 }}
-                    type="button"
-                  >
-                    <span className="character-art">
-                      <img
-                        alt=""
-                        className="character-art-portrait"
-                        loading="lazy"
-                        src={character.img}
-                      />
-                      <span className="art-number">{String(character.id).padStart(2, '0')}</span>
-                      <span className="art-caption">
-                        {breathingStyle
-                          ? breathingStyleLabels[breathingStyle]
-                          : localizedValue(character.race)}
-                      </span>
+              return (
+                <motion.button
+                  aria-label={`Подробнее о персонаже ${character.name}`}
+                  className="character-card"
+                  initial={false}
+                  key={character.id}
+                  onClick={() => setSelectedCharacter(character)}
+                  style={{ borderColor: 'transparent' }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                  whileHover={{
+                    scale: prefersReducedMotion ? 1 : 1.035,
+                    borderColor: breathingColor,
+                    boxShadow: `0 14px 32px ${breathingColor}40`,
+                  }}
+                  whileTap={{ scale: prefersReducedMotion ? 1 : 0.99 }}
+                  type="button"
+                >
+                  <span className="character-art">
+                    <img
+                      alt=""
+                      className="character-art-portrait"
+                      loading="lazy"
+                      src={character.img}
+                      style={{
+                        objectFit: 'cover',
+                        objectPosition: character.imagePosition,
+                        padding: 0,
+                      }}
+                    />
+                    <span className="art-number">{String(character.id).padStart(2, '0')}</span>
+                    <span className="art-caption">
+                      {breathingStyle
+                        ? breathingStyleLabels[breathingStyle]
+                        : localizedValue(character.race)}
                     </span>
-                    <span className="character-info">
-                      <span>
-                        <span className="character-title">
-                          {character.age === null ? 'Возраст неизвестен' : `${character.age} лет`}
-                        </span>
-                        <span className="character-name">{character.name}</span>
+                  </span>
+                  <span className="character-info">
+                    <span>
+                      <span className="character-title">
+                        {character.age === null ? 'Возраст неизвестен' : `${character.age} лет`}
                       </span>
-                      <span aria-hidden="true" className="card-arrow">↗</span>
+                      <span className="character-name">{character.name}</span>
                     </span>
-                  </motion.button>
-                )
-              })}
-            </div>
-          )}
+                    <span aria-hidden="true" className="card-arrow" style={{ color: breathingColor }}>
+                      ↗
+                    </span>
+                  </span>
+                </motion.button>
+              )
+            })}
+          </div>
         </section>
 
         <Suspense
@@ -531,39 +442,10 @@ function App() {
           <Quiz characterImages={quizCharacterImages} />
         </Suspense>
 
-        <section className="styles-section" id="styles">
-          <div className="styles-heading">
-            <p className="section-index">04 — ПУТЬ МЕЧА</p>
-            <h2>Найди своё <em>дыхание.</em></h2>
-            <p>Сосредоточься. Каждый стиль — это свой ритм, своя стихия и своя история.</p>
-          </div>
-          <div className="style-list">
-            <a className="style-row" href="#characters">
-              <span className="style-kanji">水</span>
-              <span className="style-name">Вода</span>
-              <span className="style-detail">Гибкость и спокойствие</span>
-              <span className="style-arrow" aria-hidden="true">↗</span>
-            </a>
-            <a className="style-row" href="#characters">
-              <span className="style-kanji">炎</span>
-              <span className="style-name">Пламя</span>
-              <span className="style-detail">Несгибаемая решимость</span>
-              <span className="style-arrow" aria-hidden="true">↗</span>
-            </a>
-            <a className="style-row" href="#characters">
-              <span className="style-kanji">雷</span>
-              <span className="style-name">Гром</span>
-              <span className="style-detail">Скорость одного удара</span>
-              <span className="style-arrow" aria-hidden="true">↗</span>
-            </a>
-          </div>
-          <BreathingTrial />
-        </section>
-
         <section className="arcs-section" id="arcs">
           <div className="section-heading">
             <div>
-              <p className="section-index">05 — ХРОНИКИ</p>
+              <p className="section-index">04 — ХРОНИКИ</p>
               <h2>Путь сквозь ночь</h2>
             </div>
             <p className="section-aside">Каждая встреча меняет<br />ход истории.</p>
@@ -595,12 +477,6 @@ function App() {
           </div>
         </section>
 
-        <section className="closing-section">
-          <SunMark />
-          <p className="section-index">ДО РАССВЕТА ЕЩЁ ЕСТЬ ВРЕМЯ</p>
-          <h2>История продолжается.</h2>
-          <a className="button button-light" href="#home">Вернуться к началу <span aria-hidden="true">↑</span></a>
-        </section>
       </main>
 
       <footer className="site-footer">
@@ -638,7 +514,11 @@ function App() {
               ×
             </button>
             <div className="character-dialog-image">
-              <img alt={selectedCharacter.name} src={selectedCharacter.img} />
+              <img
+                alt={selectedCharacter.name}
+                src={selectedCharacter.img}
+                style={{ objectFit: 'cover', objectPosition: selectedCharacter.imagePosition }}
+              />
             </div>
             <div className="character-dialog-details">
               <p className="section-index">ПЕРСОНАЖ · {String(selectedCharacter.id).padStart(2, '0')}</p>
