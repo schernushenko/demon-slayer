@@ -9,9 +9,7 @@ import './Quiz.css'
 type QuizStage = 'intro' | 'question' | 'result'
 type ScoreBoard = Record<CharacterId, number>
 
-interface QuizProps {
-  characterImages: Partial<Record<CharacterId, string>>
-}
+const characterIds = Object.keys(characterResults) as CharacterId[]
 
 const emptyScores = (): ScoreBoard => ({
   tanjiro: 0,
@@ -20,25 +18,28 @@ const emptyScores = (): ScoreBoard => ({
   shinobu: 0,
   giyu: 0,
   rengoku: 0,
+  akaza: 0,
+  daki: 0,
+  gyutaro: 0,
+  enmu: 0,
+  rui: 0,
+  doma: 0,
+  muzan: 0,
 })
 
 function getWinner(scores: ScoreBoard, primaryChoices: ScoreBoard): CharacterId {
-  const leaders = (Object.keys(scores) as CharacterId[]).filter(
-    (characterId) => scores[characterId] === Math.max(...Object.values(scores)),
-  )
+  const highestScore = Math.max(...characterIds.map((id) => scores[id]))
+  const leaders = characterIds.filter((id) => scores[id] === highestScore)
+  const hasSlayer = leaders.some((id) => characterResults[id].type === 'slayer')
+  const eligibleLeaders = hasSlayer
+    ? leaders.filter((id) => characterResults[id].type === 'slayer')
+    : leaders
+  const mostPrimaryChoices = Math.max(...eligibleLeaders.map((id) => primaryChoices[id]))
 
-  if (leaders.length === 1) return leaders[0]
-
-  const mostPrimaryChoices = Math.max(...leaders.map((characterId) => primaryChoices[characterId]))
-  const primaryLeaders = leaders.filter(
-    (characterId) => primaryChoices[characterId] === mostPrimaryChoices,
-  )
-
-  if (primaryLeaders.includes('tanjiro')) return 'tanjiro'
-  return primaryLeaders[0]
+  return eligibleLeaders.find((id) => primaryChoices[id] === mostPrimaryChoices) ?? eligibleLeaders[0]
 }
 
-function Quiz({ characterImages }: QuizProps) {
+function Quiz() {
   const prefersReducedMotion = useReducedMotion()
   const [stage, setStage] = useState<QuizStage>('intro')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -49,6 +50,7 @@ function Quiz({ characterImages }: QuizProps) {
   const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentQuestion = questions[questionIndex]
   const progress = stage === 'intro' ? 0 : stage === 'result' ? questions.length : questionIndex + 1
+  const result = resultId ? characterResults[resultId] : null
 
   useEffect(() => () => {
     if (transitionTimer.current) clearTimeout(transitionTimer.current)
@@ -60,12 +62,11 @@ function Quiz({ characterImages }: QuizProps) {
     let primaryId: CharacterId | null = null
     let highestOptionScore = -1
 
-    for (const characterId of Object.keys(option.scores) as CharacterId[]) {
+    for (const characterId of characterIds) {
       const points = option.scores[characterId]
       if (points === undefined) continue
 
       nextScores[characterId] += points
-      // When an option has tied scores, its first character is the primary choice.
       if (points > highestOptionScore) {
         highestOptionScore = points
         primaryId = characterId
@@ -113,9 +114,9 @@ function Quiz({ characterImages }: QuizProps) {
         <p>Прислушайся к себе — и узнай, чей характер ближе твоему.</p>
       </div>
 
-      <div className="quiz-shell">
+      <div className={`quiz-shell ${result?.type === 'demon' ? 'quiz-shell-demon' : ''}`}>
         <div
-          aria-label={`Пройдено вопросов: ${progress} из ${questions.length}`}
+          aria-label={`Вопрос ${progress} из ${questions.length}`}
           aria-valuemax={questions.length}
           aria-valuemin={0}
           aria-valuenow={progress}
@@ -125,12 +126,10 @@ function Quiz({ characterImages }: QuizProps) {
           <div className="quiz-progress-meta">
             <span>
               {stage === 'intro'
-                ? '9 вопросов · 1 путь'
+                ? `${questions.length} вопросов · один результат`
                 : stage === 'result'
                   ? 'ПУТЬ ПРОЙДЕН'
-                  : currentQuestion?.isBonus
-                    ? `БОНУСНЫЙ ВОПРОС · ${questionIndex + 1} ИЗ ${questions.length}`
-                    : `ВОПРОС ${questionIndex + 1} ИЗ ${questions.length}`}
+                  : `Вопрос ${questionIndex + 1} из ${questions.length}`}
             </span>
             <span>{String(progress).padStart(2, '0')} / {questions.length}</span>
           </div>
@@ -156,11 +155,11 @@ function Quiz({ characterImages }: QuizProps) {
               >
                 <span aria-hidden="true" className="quiz-intro-mark">呼吸</span>
                 <div className="quiz-intro-copy">
-                  <p className="quiz-kicker">УЗНАЙ СВОЙ СТИЛЬ</p>
-                  <h3>Сила начинается<br />с понимания себя.</h3>
+                  <p className="quiz-kicker">УЗНАЙ СВОЙ ПУТЬ</p>
+                  <h3>Свет или тьма?<br />Выбор за тобой.</h3>
                   <p>
-                    Девять вопросов помогут найти героя, который ближе тебе по духу.
-                    Отвечай интуитивно — результат останется тайной до самого конца.
+                    Ответь на 14 вопросов о ценностях, страхах и сложных решениях.
+                    В конце узнаешь, кто из истребителей или демонов тебе ближе.
                   </p>
                   <button
                     className="quiz-start-button"
@@ -185,9 +184,7 @@ function Quiz({ characterImages }: QuizProps) {
                 transition={{ duration: 0.32 }}
               >
                 <div className="quiz-question-heading">
-                  <p className="quiz-kicker">
-                    {currentQuestion.isBonus ? 'ВОПРОС · БОНУСНЫЙ' : 'ВОПРОС · ПУТЬ ГЕРОЯ'}
-                  </p>
+                  <p className="quiz-kicker">ВОПРОС · {questionIndex + 1} ИЗ {questions.length}</p>
                   <h3>{currentQuestion.text}</h3>
                 </div>
                 <div className="quiz-options">
@@ -198,6 +195,7 @@ function Quiz({ characterImages }: QuizProps) {
                           ? { scale: prefersReducedMotion ? 1 : 1.015 }
                           : { scale: 1 }
                       }
+                      aria-pressed={selectedOption === index}
                       className={`quiz-option ${selectedOption === index ? 'quiz-option-selected' : ''}`}
                       disabled={selectedOption !== null}
                       key={option.text}
@@ -218,33 +216,46 @@ function Quiz({ characterImages }: QuizProps) {
               </motion.div>
             )}
 
-            {stage === 'result' && resultId && (
+            {stage === 'result' && result && (
               <motion.div
                 animate={{ opacity: 1, y: 0 }}
-                className="quiz-result"
+                className={`quiz-result ${result.type === 'demon' ? 'quiz-result-demon' : 'quiz-result-slayer'}`}
                 exit={{ opacity: 0, y: -motionOffset }}
                 initial={{ opacity: 0, y: motionOffset }}
                 key="result"
                 transition={{ duration: 0.4 }}
               >
-                <div aria-hidden="true" className="quiz-confetti">
-                  {Array.from({ length: 28 }, (_, index) => (
-                    <span
-                      className="quiz-confetti-piece"
-                      key={index}
-                      style={{
-                        '--confetti-delay': `${(index % 9) * 0.12}s`,
-                        '--confetti-x': `${(index * 37) % 100}%`,
-                        '--confetti-hue': `${(index * 31) % 360}deg`,
-                      } as CSSProperties}
+                {result.type === 'slayer' ? (
+                  <div aria-hidden="true" className="quiz-confetti">
+                    {Array.from({ length: 28 }, (_, index) => (
+                      <span
+                        className="quiz-confetti-piece"
+                        key={index}
+                        style={{
+                          '--confetti-delay': `${(index % 9) * 0.12}s`,
+                          '--confetti-x': `${(index * 37) % 100}%`,
+                          '--confetti-hue': `${(index * 31) % 360}deg`,
+                        } as CSSProperties}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div aria-hidden="true" className="quiz-demon-shadows">
+                    <motion.span
+                      animate={prefersReducedMotion ? undefined : { opacity: [0.18, 0.48, 0.18], scale: [0.9, 1.15, 0.9] }}
+                      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                     />
-                  ))}
-                </div>
+                    <motion.span
+                      animate={prefersReducedMotion ? undefined : { opacity: [0.12, 0.35, 0.12], scale: [1.1, 0.85, 1.1] }}
+                      transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  </div>
+                )}
                 <p className="quiz-kicker quiz-result-kicker">ТВОЙ РЕЗУЛЬТАТ</p>
                 <ResultCard
-                  character={characterResults[resultId]}
-                  characterImage={characterImages[resultId]}
+                  character={result}
                   onRestart={restartQuiz}
+                  type={result.type}
                 />
               </motion.div>
             )}

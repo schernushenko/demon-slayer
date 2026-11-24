@@ -2,22 +2,12 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type { CharacterId } from './components/Quiz/quizData'
 import { characters, type Character } from './data/characters'
 import './App.css'
 
 const Quiz = lazy(() => import('./components/Quiz/Quiz'))
 
 type Theme = 'dark' | 'light'
-
-const quizCharacterNames: Record<CharacterId, string> = {
-  tanjiro: 'Tanjiro Kamado',
-  zenitsu: 'Zenitsu Agatsuma',
-  inosuke: 'Inosuke Hashibira',
-  shinobu: 'Shinobu Kocho',
-  giyu: 'Giyu Tomioka',
-  rengoku: 'Kyojuro Rengoku',
-}
 
 type BreathingStyle =
   | 'water'
@@ -263,14 +253,6 @@ function App() {
     setSelectedCharacter(null)
   }
 
-  const quizCharacterImages = (Object.keys(quizCharacterNames) as CharacterId[]).reduce<
-    Partial<Record<CharacterId, string>>
-  >((images, id) => {
-    const character = characters.find((item) => item.name === quizCharacterNames[id])
-    if (character) images[id] = character.img
-    return images
-  }, {})
-
   return (
     <>
       <header className="site-header">
@@ -439,7 +421,7 @@ function App() {
             </section>
           )}
         >
-          <Quiz characterImages={quizCharacterImages} />
+          <Quiz />
         </Suspense>
 
         <section className="arcs-section" id="arcs">

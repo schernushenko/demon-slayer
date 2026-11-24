@@ -12,7 +12,58 @@ export type Character = {
   quote: string | null
 }
 
-const localArtwork = '/demon-slayer.jpg'
+const personArtworkNames = new Set([
+  'Akaza',
+  'Aoi Kanzaki',
+  'Daki',
+  'Doma',
+  'Enmu',
+  'Genya Shinazugawa',
+  'Giyu Tomioka',
+  'Gyokko',
+  'Gyomei Himejima',
+  'Gyutaro',
+  'Hand Demon',
+  'Hantengu',
+  'Hotaru Haganezuka',
+  'Inosuke Hashibira',
+  'Kagaya Ubuyashiki',
+  'Kanao Tsuyuri',
+  'Kokushibo',
+  'Kyogai',
+  'Kyojuro Rengoku',
+  'Makomo',
+  'Mitsuri Kanroji',
+  'Muichiro Tokito',
+  'Muzan Kibutsuji',
+  'Nakime',
+  'Nezuko Kamado',
+  'Obanai Iguro',
+  'Rui',
+  'Sabito',
+  'Sakonji Urokodaki',
+  'Sanemi Shinazugawa',
+  'Shinobu Kocho',
+  'Spider Daughter',
+  'Spider Father',
+  'Spider Mother',
+  'Spider Son',
+  'Susamaru',
+  'Swamp Demon',
+  'Tamayo',
+  'Tanjiro Kamado',
+  'Tengen Uzui',
+  'Yahaba',
+  'Yoriichi',
+  'Yushiro',
+  'Zenitsu Agatsuma',
+])
+
+export function personArtwork(name: string): string {
+  return personArtworkNames.has(name)
+    ? `/persons/${encodeURIComponent(name)}.webp`
+    : '/demon-slayer.jpg'
+}
 
 function character(
   id: number,
@@ -30,7 +81,7 @@ function character(
     gender,
     race,
     description,
-    img: localArtwork,
+    img: personArtwork(name),
     imagePosition,
     affiliation_id: 1,
     arc_id: 1,
