@@ -384,11 +384,6 @@ function App() {
                       className="character-art-portrait"
                       loading="lazy"
                       src={character.img}
-                      style={{
-                        objectFit: 'cover',
-                        objectPosition: character.imagePosition,
-                        padding: 0,
-                      }}
                     />
                     <span className="art-number">{String(character.id).padStart(2, '0')}</span>
                     <span className="art-caption">
@@ -499,7 +494,6 @@ function App() {
               <img
                 alt={selectedCharacter.name}
                 src={selectedCharacter.img}
-                style={{ objectFit: 'cover', objectPosition: selectedCharacter.imagePosition }}
               />
             </div>
             <div className="character-dialog-details">
