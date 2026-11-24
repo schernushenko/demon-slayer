@@ -4,12 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server/index.js --dev",
+    "start": "node server/index.js",
+    "admin:setup": "node server/setup-admin.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
+    "better-sqlite3": "^13.2.0",
+    "express": "^5.3.0",
     "framer-motion": "^14.9.0",
     "gsap": "^3.15.0",
     "react": "^19.3.1",
